@@ -1,4 +1,4 @@
-# Project Title
+# Spotify-Oauth-App
 
 ## Project Overview
 This project is a MERN application for managing a collection of songs. It features integration with the **Spotify API** using OAuth for authentication, allowing users to log in with their Spotify accounts. Key features include:
