@@ -24,4 +24,4 @@ Follow these instructions to get a working version of the project up and running
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/your-repository-name.git
+   git clone git@github.com:KoelleKaleb-FS/spotify-oauth-app.git
