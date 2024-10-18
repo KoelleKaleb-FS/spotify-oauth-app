@@ -1,25 +1,24 @@
 const express = require('express');
-const path = require('path'); 
+const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const axios = require('axios');
 const querystring = require('querystring');
 const jwt = require('jsonwebtoken');
 const verifyJWT = require('./middlewares/verifyJWT');
+const spotifyRoutes = require('./routes/spotifyRoutes'); // Import custom Spotify routes
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Needed to parse JSON requests
+
 // Spotify credentials from .env
 const clientId = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_SECRET; 
-const redirectUri = process.env.REDIRECT_URI || 'http://localhost:3000/callback'; 
+const clientSecret = process.env.CLIENT_SECRET;
+const redirectUri = process.env.REDIRECT_URI || 'http://localhost:3000/callback';
 
-
-// Scope for the data you need access to
 const scope = 'user-read-private user-read-email';
-
-// Parse URL-encoded data
-app.use(express.urlencoded({ extended: true }));
 
 // Login route
 app.get('/login', (req, res) => {
@@ -103,10 +102,8 @@ app.get('/refresh_token', (req, res) => {
     });
 });
 
-// Protected route example
-app.get('/protected', verifyJWT, (req, res) => {
-    res.json({ message: 'You are authorized', user: req.user });
-});
+// Use Spotify routes
+app.use('/api/spotify', spotifyRoutes); // Use custom Spotify API routes
 
 // Basic route
 app.get('/', (req, res) => {
