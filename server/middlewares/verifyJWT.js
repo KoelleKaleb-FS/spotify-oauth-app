@@ -14,8 +14,7 @@ const verifyJWT = (req, res, next) => {
         if (err) {
             return res.status(401).json({ message: 'Failed to authenticate token' });
         }
-        // Save the decoded information (usually user info) to the request object for future use
-        req.user = decoded;
+        req.user = decoded; // Store decoded user info in request object
         next(); // Continue to the next middleware or route handler
     });
 };

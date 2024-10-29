@@ -2,13 +2,23 @@ const express = require('express');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const axios = require('axios');
+const cors = require('cors');
 const querystring = require('querystring');
 const jwt = require('jsonwebtoken');
-const verifyJWT = require('./middlewares/verifyJWT');
-const spotifyRoutes = require('./routes/spotifyRoutes'); // Import custom Spotify routes
+const verifyJWT = require('./middlewares/verifyJWT'); // Middleware for JWT verification
+const auth = require('./routes/auth'); // Your auth routes
+const spotifyRoutes = require('./routes/spotifyRoutes'); // Your Spotify API routes
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5050;
+
+// CORS configuration
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // Needed to parse JSON requests
@@ -17,10 +27,9 @@ app.use(express.json()); // Needed to parse JSON requests
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const redirectUri = process.env.REDIRECT_URI || 'http://localhost:3000/callback';
+const scope = 'user-read-recently-played';
 
-const scope = 'user-read-private user-read-email';
-
-// Login route
+// Login route to initiate Spotify OAuth flow
 app.get('/login', (req, res) => {
     const authUrl = 'https://accounts.spotify.com/authorize?' +
         querystring.stringify({
@@ -33,8 +42,17 @@ app.get('/login', (req, res) => {
 });
 
 // Handle Spotify OAuth callback
-app.get('/callback', (req, res) => {
+app.get('/callback', async (req, res) => {
+    // Log the incoming request query parameters
+    console.log('Callback request:', req.query);
+    
     const code = req.query.code || null;
+
+    // Check for the presence of the authorization code
+    if (!code) {
+        console.error('Authorization code is missing');
+        return res.status(400).send('Missing authorization code');
+    }
 
     const tokenUrl = 'https://accounts.spotify.com/api/token';
     const tokenData = querystring.stringify({
@@ -45,33 +63,38 @@ app.get('/callback', (req, res) => {
         client_secret: clientSecret
     });
 
-    axios.post(tokenUrl, tokenData, {
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    }).then(response => {
+    try {
+        // Make a request to exchange the authorization code for an access token
+        const response = await axios.post(tokenUrl, tokenData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        
         const accessToken = response.data.access_token;
         const refreshToken = response.data.refresh_token;
 
         // Generate JWT
         const jwtToken = jwt.sign(
             { accessToken, refreshToken },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET, // Ensure your secret is correctly set
             { expiresIn: '1h' }
         );
 
+        // Send tokens in the response
         res.json({
             access_token: accessToken,
             refresh_token: refreshToken,
-            jwt_token: jwtToken
+            jwt_token: jwtToken // Return the generated JWT token
         });
-    }).catch(error => {
-        res.send('Error retrieving access token');
-    });
+    } catch (error) {
+        console.error('Error retrieving access token:', error.response ? error.response.data : error.message);
+        res.status(500).send('Error retrieving access token');
+    }
 });
 
 // Refresh token route
-app.get('/refresh_token', (req, res) => {
+app.get('/refresh_token', async (req, res) => {
     const refreshToken = req.query.refresh_token;
 
     if (!refreshToken) {
@@ -86,24 +109,25 @@ app.get('/refresh_token', (req, res) => {
         client_secret: clientSecret
     });
 
-    axios.post(tokenUrl, tokenData, {
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    }).then(response => {
+    try {
+        const response = await axios.post(tokenUrl, tokenData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
         const newAccessToken = response.data.access_token;
 
         res.json({
             access_token: newAccessToken
         });
-    }).catch(error => {
+    } catch (error) {
         console.error('Error refreshing token:', error);
         res.status(500).json({ error: 'Failed to refresh token' });
-    });
+    }
 });
 
 // Use Spotify routes
-app.use('/api/spotify', spotifyRoutes); // Use custom Spotify API routes
+app.use('/api/spotify', verifyJWT, spotifyRoutes); // Apply JWT verification middleware
 
 // Basic route
 app.get('/', (req, res) => {

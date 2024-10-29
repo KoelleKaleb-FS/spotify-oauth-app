@@ -1,0 +1,115 @@
+/* App.css */
+.heading {
+  color: #4A90E2;
+  font-size: 2.5rem;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Full height of the viewport */
+  background-color: #f0f0f0; /* Light background color */
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.login-title {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #333; /* Darker text color */
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px; /* Limit the width of the form */
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555; /* Slightly lighter text for labels */
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc; /* Light border color */
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border 0.3s;
+}
+
+.form-input:focus {
+  border-color: #4A90E2; /* Change border color on focus */
+}
+
+.login-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4A90E2; /* Primary button color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background-color: #357ABD; /* Darker shade on hover */
+}
+
+.login-footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.login-footer a {
+  color: #4A90E2; /* Primary link color */
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline; /* Underline on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .login-container {
+    padding: 10px;
+  }
+
+  .login-title {
+    font-size: 1.5rem; /* Smaller font on mobile */
+  }
+}
+.spotify-button {
+  background-color: #1DB954; /* Spotify green color */
+  color: white; /* White text color */
+  border: none; /* No border */
+  padding: 10px 20px; /* Padding for spacing */
+  font-size: 16px; /* Font size */
+  border-radius: 50px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s, transform 0.2s; /* Transition effects */
+  width: 100%; /* Full width */
+}
+
+.spotify-button:hover {
+  background-color: #1aa34a; /* Darker green on hover */
+  transform: translateY(-2px); /* Slightly lift the button on hover */
+}
+
+.spotify-button:active {
+  transform: translateY(1px); /* Press effect */
+  background-color: #1aa34a; /* Keep the darker color when pressed */
+}

@@ -2,7 +2,7 @@
 const express = require('express');
 const axios = require('axios');
 const verifyJWT = require('../middlewares/verifyJWT');
-const { validateToken, refreshTokenIfExpired } = require('../auth');
+const { validateToken, refreshTokenIfExpired } = require('./auth');
 
 const router = express.Router();
 
@@ -16,6 +16,7 @@ router.get('/profile', verifyJWT, async (req, res) => {
                 Authorization: `Bearer ${accessToken}`
             }
         });
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000'); // Allow CORS
         res.json(response.data); // Send back user profile data
     } catch (error) {
         console.error('Error fetching profile:', error);
@@ -33,6 +34,7 @@ router.get('/playlists', verifyJWT, async (req, res) => {
                 Authorization: `Bearer ${accessToken}`
             }
         });
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000'); // Allow CORS
         res.json(response.data); // Send back playlists data
     } catch (error) {
         console.error('Error fetching playlists:', error);

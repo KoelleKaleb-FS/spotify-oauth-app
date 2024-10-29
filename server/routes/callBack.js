@@ -1,13 +1,22 @@
+const querystring = require('querystring');
+const axios = require('axios');
 const jwt = require('jsonwebtoken');
 
+// Handle Spotify OAuth callback
 app.get('/callback', (req, res) => {
-    const code = req.query.code || null;
+    console.log('Callback request:', req.query);
+    const code = req.query.code || null; // Get the authorization code
+
+    if (!code) {
+        console.error('Authorization code is missing');
+        return res.status(400).send('No code provided');
+    }
 
     const tokenUrl = 'https://accounts.spotify.com/api/token';
     const tokenData = querystring.stringify({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: redirectUri,
+        redirect_uri: redirectUri, // Ensure this matches the one in your Spotify app
         client_id: clientId,
         client_secret: clientSecret
     });
@@ -16,22 +25,32 @@ app.get('/callback', (req, res) => {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-    }).then(response => {
-        const accessToken = response.data.access_token;
-        const refreshToken = response.data.refresh_token;
+    })
+    .then(response => {
+        const accessToken = response.data.access_token; // Check if this is undefined or null
+        const refreshToken = response.data.refresh_token; // Check if this is undefined or null
 
-        // Create a JWT and sign it with a secret
-        const userJwt = jwt.sign({
-            access_token: accessToken,
-            refresh_token: refreshToken
-        }, process.env.JWT_SECRET, { expiresIn: '1h' }); // 1 hour expiry for example
+        if (!accessToken || !refreshToken) {
+            console.error('Access token or refresh token is missing:', response.data);
+            return res.status(500).send('Failed to retrieve tokens');
+        }
 
-        // Respond with the JWT
+        // Generate JWT
+        const jwtToken = jwt.sign(
+            { accessToken, refreshToken },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        // Send back tokens
         res.json({
-            token: userJwt
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            jwt_token: jwtToken
         });
-
-    }).catch(error => {
-        res.status(400).send('Error retrieving access token');
+    })
+    .catch(error => {
+        console.error('Error retrieving access token:', error.response ? error.response.data : error);
+        res.status(500).send('Error retrieving access token');
     });
 });
